@@ -55,10 +55,6 @@ package object core {
     result
   }
 
-  @inline implicit class NullableExtras[T](t: T) {
-    def fromNull = if(t == null) None else Some(t)
-  }
-
   @inline implicit class SeqExtras[A, C[A] <: Seq[A]](val xs: C[A]) {
 
     /** Inserts an element between each of the elements of the sequence. */
