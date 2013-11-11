@@ -91,5 +91,41 @@ package object core {
     }
   }
 
+  /** Convenience method for forking a block of code to a new thread */
+  def fork(blk: => Unit): Thread = {
+    val th = new Thread {
+      override def run() = {
+        blk
+        join()
+      }
+    }
+    th.start()
+    th
+  }
 
+  implicit val booleanParser: StandardParser[Boolean] =
+    StandardParser(s => if(s == "true") Some(true) else if(s == "false") Some(false) else None)
+
+  implicit val byteParser: StandardParser[Byte] =
+    StandardParser(s => try Some(s.toByte) catch { case e: NumberFormatException => None })
+  
+  implicit val charParser: StandardParser[Char] =
+    StandardParser(s => if(s.length == 1) Some(s(0)) else None)
+  
+  implicit val shortParser: StandardParser[Short] =
+    StandardParser(s => try Some(s.toShort) catch { case e: NumberFormatException => None })
+  
+  implicit val intParser: StandardParser[Int] =
+    StandardParser(s => try Some(s.toInt) catch { case e: NumberFormatException => None })
+  
+  implicit val longParser: StandardParser[Long] =
+    StandardParser(s => try Some(s.toLong) catch { case e: NumberFormatException => None })
+  
+  implicit val stringParser: StandardParser[String] = StandardParser(s => Some(s))
+
+  implicit val doubleParser: StandardParser[Double] =
+    StandardParser(s => try Some(s.toDouble) catch { case e: NumberFormatException => None })
+
+  implicit val floatParser: StandardParser[Float] =
+    StandardParser(s => try Some(s.toFloat) catch { case e: NumberFormatException => None })
 }

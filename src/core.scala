@@ -42,6 +42,17 @@ trait Lookup[Index] {
   def lookup(idx: Index): Option[Item] = items.get(idx)
 }
 
+object Utils {
+  def uniqueNonSubstring(s: String) = {
+    var cur, m = 0
+    s foreach { c =>
+      cur = if(c == '_') cur + 1 else 0
+      m = m max cur
+    }
+    "_"*(m + 1)
+  }
+}
+
 trait Cell[T] {
   def apply(): T
   def update(t: T): Unit
