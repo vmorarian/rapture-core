@@ -36,6 +36,8 @@ trait ExceptionHandler {
   def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): ![E, T]
 }
 
+object raw extends strategy.ThrowExceptions
+
 object strategy {
   
   class ThrowExceptions extends ExceptionHandler {
