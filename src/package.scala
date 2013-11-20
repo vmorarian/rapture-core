@@ -31,15 +31,12 @@ package object core {
 
   implicit val implicitConversions = language.implicitConversions
 
-  def repeat[T](blk: => T) = new { def until(test: T => Boolean) = {
+  def repeat[T](blk: => T) = new Repeater[T](blk)
+  class Repeater[T](blk: => T) { def until(test: T => Boolean) = {
     var t: T = blk
     while(!test(t)) t = blk
     t
   } }
-
-  object load {
-    def apply[C](implicit mf: scala.reflect.ClassTag[C]) = { mf.toString; () }
-  }
 
   def yCombinator[A, B](fn: (A => B) => (A => B)): A => B = fn(yCombinator(fn))(_)
 

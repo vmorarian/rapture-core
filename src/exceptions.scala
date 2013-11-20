@@ -40,13 +40,13 @@ object raw extends strategy.ThrowExceptions
 
 object strategy {
   
+  implicit def throwExceptions = new ThrowExceptions
   class ThrowExceptions extends ExceptionHandler {
     type ![E <: Exception, T] = T
     def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): T = t
   }
 
-  implicit def throwExceptions = new ThrowExceptions
-
+  implicit def captureExceptions = new CaptureExceptions
   class CaptureExceptions extends ExceptionHandler {
     type ![E <: Exception, T] = Either[E, T]
     def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Either[E, T] =
@@ -54,22 +54,28 @@ object strategy {
         case e: E => Left(e)
         case e: Throwable => throw e
       }
-    
   }
 
   implicit def returnTry = new ReturnTry
-  
   class ReturnTry extends ExceptionHandler {
     type ![E <: Exception, T] = Try[T]
     def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Try[T] = Try(t)
     
   }
 
-  implicit def captureExceptions = new CaptureExceptions
-
-  implicit def returnFutures(implicit ec: ExecutionContext) = new ExceptionHandler {
+  implicit def returnFutures(implicit ec: ExecutionContext) = new ReturnFutures
+  class ReturnFutures(implicit ec: ExecutionContext) extends ExceptionHandler {
     type ![E <: Exception, T] = Future[T]
     def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Future[T] = Future { t }
+  }
+
+  implicit def timeResponses = new TimeResponses
+  class TimeResponses extends ExceptionHandler {
+    type ![E <: Exception, T] = (T, Long)
+    def except[E <: Exception, T](r: => T)(implicit mf: ClassTag[E]): (T, Long) = {
+      val t0 = System.currentTimeMillis
+      (r, System.currentTimeMillis - t0)
+    }
   }
 }
 
