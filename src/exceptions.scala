@@ -32,8 +32,8 @@ import scala.concurrent._
 @implicitNotFound(msg = "No exception handler was available. Please import "+
   "a member of rapture.io.strategy, e.g. strategy.throwExceptions.")
 trait ExceptionHandler {
-  type ![_ <: Exception, _]
-  def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): ![E, T]
+  type ![_, _ <: Exception]
+  def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): ![T, E]
 }
 
 object raw extends strategy.ThrowExceptions
@@ -42,14 +42,14 @@ object strategy {
   
   implicit def throwExceptions = new ThrowExceptions
   class ThrowExceptions extends ExceptionHandler {
-    type ![E <: Exception, T] = T
-    def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): T = t
+    type ![T, E <: Exception] = T
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): T = t
   }
 
   implicit def captureExceptions = new CaptureExceptions
   class CaptureExceptions extends ExceptionHandler {
-    type ![E <: Exception, T] = Either[E, T]
-    def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Either[E, T] =
+    type ![T, E <: Exception] = Either[E, T]
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): Either[E, T] =
       try Right(t) catch {
         case e: E => Left(e)
         case e: Throwable => throw e
@@ -58,21 +58,28 @@ object strategy {
 
   implicit def returnTry = new ReturnTry
   class ReturnTry extends ExceptionHandler {
-    type ![E <: Exception, T] = Try[T]
-    def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Try[T] = Try(t)
+    type ![T, E <: Exception] = Try[T]
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): Try[T] = Try(t)
     
+  }
+
+  implicit val kcaco = new Kcaco
+  class Kcaco extends ExceptionHandler {
+    type ![T, E <: Exception] = T
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): T =
+      try t catch { case e: Exception => null.asInstanceOf[T] }
   }
 
   implicit def returnFutures(implicit ec: ExecutionContext) = new ReturnFutures
   class ReturnFutures(implicit ec: ExecutionContext) extends ExceptionHandler {
-    type ![E <: Exception, T] = Future[T]
-    def except[E <: Exception, T](t: => T)(implicit mf: ClassTag[E]): Future[T] = Future { t }
+    type ![T, E <: Exception] = Future[T]
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): Future[T] = Future { t }
   }
 
   implicit def timeResponses = new TimeResponses
   class TimeResponses extends ExceptionHandler {
-    type ![E <: Exception, T] = (T, Long)
-    def except[E <: Exception, T](r: => T)(implicit mf: ClassTag[E]): (T, Long) = {
+    type ![T, E <: Exception] = (T, Long)
+    def wrap[T, E <: Exception](r: => T)(implicit mf: ClassTag[E]): (T, Long) = {
       val t0 = System.currentTimeMillis
       (r, System.currentTimeMillis - t0)
     }
