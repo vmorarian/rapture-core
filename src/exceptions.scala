@@ -31,9 +31,15 @@ import scala.concurrent._
 
 @implicitNotFound(msg = "No exception handler was available. Please import "+
   "a member of rapture.io.strategy, e.g. strategy.throwExceptions.")
-trait ExceptionHandler {
+trait ExceptionHandler { eh =>
   type ![_, _ <: Exception]
   def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): ![T, E]
+
+  def apply(eh2: ExceptionHandler) = new ExceptionHandler {
+    type ![T, E <: Exception] = eh.![eh2.![T, E], E]
+    def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): ![T, E] =
+      eh.wrap(eh2.wrap(t))
+  }
 }
 
 object raw extends strategy.ThrowExceptions

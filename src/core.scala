@@ -25,7 +25,8 @@ import scala.collection.generic._
 
 import language.higherKinds
 
-/** Provides a simple class mixin for creating a list of items from which items can be looked up.
+/** Provides a simple class mixin for creating a list of items from which items can be looked
+  * up.
   *
   * @tparam Index The type of the key by which items are indexed */
 trait Lookup[Index] {
@@ -78,7 +79,8 @@ class Counter(private var n: Int = 0) { def apply() = synchronized { val r = n; 
 case class Csv(data: Seq[Seq[String]]) {
   override def toString = {
     val sb = new StringBuilder
-    for(xs <- data) sb.append(xs.map(_.replaceAll("\\\"", "\\\"\\\"")).mkString("\"", "\",\"", "\"\r\n"))
+    for(xs <- data)
+      sb.append(xs.map(_.replaceAll("\\\"", "\\\"\\\"")).mkString("\"", "\",\"", "\"\r\n"))
     sb.toString
   }
 

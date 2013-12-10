@@ -31,9 +31,10 @@ object IntegrateImplicits {
   import language.experimental.macros
   import language.implicitConversions
 
-  trait PackageToken
+  /*trait PackageToken
 
-  implicit def integrate[T, P <: PackageToken, Q <: PackageToken]: T = macro integrateMacro[T, P, Q]
+  implicit def integrate[T, P <: PackageToken, Q <: PackageToken]: T =
+    macro integrateMacro[T, P, Q]
 
   def integrateMacro[T, P, Q](c: Context): c.Expr[T] = {
     import c.universe._
@@ -47,7 +48,7 @@ object IntegrateImplicits {
     c.Expr[T](null)
   }
 
-  /*def materialize[T: c.WeakTypeTag](c: Context): c.Expr[Extractor[T]] = {
+  def materialize[T: c.WeakTypeTag](c: Context): c.Expr[Extractor[T]] = {
     import c.universe._
 
     val extractor = typeOf[Extractor[_]].typeSymbol.asType.toTypeConstructor
