@@ -82,12 +82,13 @@ object strategy {
     def wrap[T, E <: Exception](t: => T)(implicit mf: ClassTag[E]): Future[T] = Future { t }
   }
 
-  implicit def timeResponses = new TimeResponses
-  class TimeResponses extends ExceptionHandler {
-    type ![T, E <: Exception] = (T, Long)
-    def wrap[T, E <: Exception](r: => T)(implicit mf: ClassTag[E]): (T, Long) = {
+  implicit def timeExecution[I: TimeSystem] = new TimeExecution
+  class TimeExecution[I: TimeSystem] extends ExceptionHandler {
+    val ts = implicitly[TimeSystem[I]]
+    type ![T, E <: Exception] = (T, ts.Duration)
+    def wrap[T, E <: Exception](r: => T)(implicit mf: ClassTag[E]): (T, ts.Duration) = {
       val t0 = System.currentTimeMillis
-      (r, System.currentTimeMillis - t0)
+      (r, ts.duration(System.currentTimeMillis, t0))
     }
   }
 }
