@@ -88,7 +88,7 @@ object strategy {
     type ![T, E <: Exception] = (T, ts.Duration)
     def wrap[T, E <: Exception](r: => T)(implicit mf: ClassTag[E]): (T, ts.Duration) = {
       val t0 = System.currentTimeMillis
-      (r, ts.duration(System.currentTimeMillis, t0))
+      (r, ts.duration(t0, System.currentTimeMillis))
     }
   }
 }
