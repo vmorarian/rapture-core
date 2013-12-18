@@ -20,30 +20,6 @@
 \**********************************************************************************************/
 package rapture.core
 
-import scala.annotation._
-
-@implicitNotFound("an implicit TimeSystem is required; please import timeSystem.numeric or "+
-    "timeSystem.javaUtil")
-trait TimeSystem[Instant] {
-  type Duration
-  def instant(millis: Long): Instant
-  def duration(from: Long, to: Long): Duration
-  def fromInstant(inst: Instant): Long
-}
-
-object timeSystem {
-  implicit val numeric = new TimeSystem[Long] {
-    type Duration = Long
-    def instant(millis: Long): Long = millis
-    def duration(from: Long, to: Long): Long = to - from
-    def fromInstant(inst: Long): Long = inst
-  }
-
-  implicit val javaUtil = new TimeSystem[java.util.Date] {
-    import java.util.Date
-    type Duration = Long
-    def instant(millis: Long) = new Date(millis)
-    def duration(from: Long, to: Long): Long = to - from
-    def fromInstant(inst: Date): Long = inst.getTime
-  }
+object Main extends App {
+  println("Running this JAR file does nothing. To use it, please include it on your classpath.")
 }
