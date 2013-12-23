@@ -18,16 +18,19 @@
 * either express or implied. See the License for the specific language governing permissions   *
 * and limitations under the License.                                                           *
 \**********************************************************************************************/
-package rapture
+package rapture.core
 
 import scala.collection.mutable.HashMap
 import scala.collection.generic._
 
 import language.higherKinds
 
-package object core {
+object `package` {
 
   type implicitNotFound = annotation.implicitNotFound
+
+  @inline
+  final def ?[T](implicit t: T) = t
 
   implicit val implicitConversions = language.implicitConversions
 

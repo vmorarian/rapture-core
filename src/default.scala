@@ -20,32 +20,19 @@
 \**********************************************************************************************/
 package rapture.core
 
-import scala.annotation._
+@implicitNotFound("No default value for type ${T}")
+case class Default[+T](default: T)
 
-object TimeSystem {
-  type ByInstant[T] = TimeSystem[T, _]
-  type ByDuration[T] = TimeSystem[_, T]
-}
-
-@implicitNotFound("an implicit TimeSystem is required; please import timeSystem.numeric or "+
-    "timeSystem.javaUtil")
-trait TimeSystem[Instant, Duration] {
-  def instant(millis: Long): Instant
-  def duration(from: Long, to: Long): Duration
-  def fromInstant(inst: Instant): Long
-}
-
-object timeSystems {
-  implicit val numeric = new TimeSystem[Long, Long] {
-    def instant(millis: Long): Long = millis
-    def duration(from: Long, to: Long): Long = to - from
-    def fromInstant(inst: Long): Long = inst
+object defaults {
+  object primitivesZero {
+    implicit val longZero: Default[Long] = Default(0L)
+    implicit val intZero: Default[Int] = Default(0)
+    implicit val shortZero: Default[Short] = Default(0)
+    implicit val byteZero: Default[Byte] = Default(0)
+    implicit val doubleZero: Default[Double] = Default(0.0)
+    implicit val floatZero: Default[Float] = Default(0.0f)
+    implicit val booleanFalse: Default[Boolean] = Default(false)
   }
 
-  implicit val javaUtil = new TimeSystem[java.util.Date, Long] {
-    import java.util.Date
-    def instant(millis: Long) = new Date(millis)
-    def duration(from: Long, to: Long): Long = to - from
-    def fromInstant(inst: Date): Long = inst.getTime
-  }
+  implicit val emptyString: Default[String] = Default[String]("")
 }
