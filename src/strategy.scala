@@ -64,7 +64,7 @@ object strategy {
     def opt: Option[T] = discardExceptions.wrap(t)
     def default(implicit default: Default[T]): T = useDefaults.wrap(t).apply()
     def either: Either[E, T] = captureExceptions.wrap(t)
-    def asTry: Try[T] = returnTry.wrap(t)
+    def attempt: Try[T] = returnTry.wrap(t)
     def time[D: TimeSystem.ByDuration] = timeExecution.wrap(t)
     def future(implicit ec: ExecutionContext): Future[T] = returnFutures.wrap(t)
   

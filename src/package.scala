@@ -55,6 +55,15 @@ object `package` {
     result
   }
 
+  implicit class Into[T](t: T) {
+    def into[S](fn: T => S) = fn(t)
+    def into[S](fn: (T, T) => S) = fn(t)
+    def into[S](fn: (T, T) => S) = fn(t, t)
+    def into[S](fn: (T, T, T) => S) = fn(t, t, t)
+    def into[S](fn: (T, T, T, T) => S) = fn(t, t, t, t)
+    def into[S](fn: (T, T, T, T, T) => S) = fn(t, t, t, t, t)
+  }
+
   @inline implicit class SeqExtras[A, C[A] <: Seq[A]](val xs: C[A]) {
 
     /** Inserts an element between each of the elements of the sequence. */

@@ -33,6 +33,7 @@ trait TimeSystem[Instant, Duration] {
   def instant(millis: Long): Instant
   def duration(from: Long, to: Long): Duration
   def fromInstant(inst: Instant): Long
+  def fromDuration(dur: Duration): Long
 }
 
 object timeSystems {
@@ -40,6 +41,7 @@ object timeSystems {
     def instant(millis: Long): Long = millis
     def duration(from: Long, to: Long): Long = to - from
     def fromInstant(inst: Long): Long = inst
+    def fromDuration(dur: Long): Long = dur
   }
 
   implicit val javaUtil = new TimeSystem[java.util.Date, Long] {
@@ -47,5 +49,6 @@ object timeSystems {
     def instant(millis: Long) = new Date(millis)
     def duration(from: Long, to: Long): Long = to - from
     def fromInstant(inst: Date): Long = inst.getTime
+    def fromDuration(dur: Long): Long = dur
   }
 }
