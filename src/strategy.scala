@@ -62,6 +62,7 @@ object strategy {
   class Explicit[T, E <: Exception: ClassTag](t: => T) {
     def get: T = t
     def opt: Option[T] = discardExceptions.wrap(t)
+    def getOrElse(t: T): T = opt.getOrElse(t)
     def default(implicit default: Default[T]): T = useDefaults.wrap(t).apply()
     def either: Either[E, T] = captureExceptions.wrap(t)
     def attempt: Try[T] = returnTry.wrap(t)

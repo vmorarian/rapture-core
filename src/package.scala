@@ -57,7 +57,6 @@ object `package` {
 
   implicit class Into[T](t: T) {
     def into[S](fn: T => S) = fn(t)
-    def into[S](fn: (T, T) => S) = fn(t)
     def into[S](fn: (T, T) => S) = fn(t, t)
     def into[S](fn: (T, T, T) => S) = fn(t, t, t)
     def into[S](fn: (T, T, T, T) => S) = fn(t, t, t, t)
