@@ -80,5 +80,5 @@ for that implicit, context-bounds force us to make repeated use of the `implicit
 order to use the type class. This can make using context-bounds more cumbersome than they
 deserve.
 
-Rapture Core introduces an alias for `implicitly` named `?`. Any occurrence of `implicitly` can
-be replaced by a `?`.
+Rapture Core introduces an alias for `implicitly` named `?`. Generally speaking, any occurrence
+of `implicitly` can be replaced by a `?`.
