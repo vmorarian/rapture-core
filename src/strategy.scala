@@ -32,11 +32,11 @@ import scala.concurrent._
 @implicitNotFound(msg = "No exception handler was available. Please import "+
   "a member of rapture.io.strategy, e.g. strategy.throwExceptions.")
 trait ExceptionHandler { eh =>
-  type ![_, _ <: Exception]
+  type ![+_, _ <: Exception]
   def wrap[T, E <: Exception: ClassTag](t: => T): ![T, E]
 
   def compose(eh2: ExceptionHandler) = new ExceptionHandler {
-    type ![T, E <: Exception] = eh.![eh2.![T, E], E]
+    type ![+T, E <: Exception] = eh.![eh2.![T, E], E]
     def wrap[T, E <: Exception: ClassTag](t: => T): ![T, E] =
       eh.wrap(eh2.wrap(t))
   }
@@ -48,22 +48,22 @@ object strategy {
   
   implicit def throwExceptions = new ThrowExceptions
   class ThrowExceptions extends ExceptionHandler {
-    type ![T, E <: Exception] = T
+    type ![+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T = t
   }
 
   implicit def explicit = new ExplicitReturns
   class ExplicitReturns extends ExceptionHandler {
-    type ![T, E <: Exception] = Explicit[T, E]
+    type ![+T, E <: Exception] = Explicit[T, E]
     def wrap[T, E <: Exception: ClassTag](t: => T): Explicit[T, E] =
       new Explicit[T, E](t)
   }
 
-  class Explicit[T, E <: Exception: ClassTag](t: => T) {
+  class Explicit[+T, E <: Exception: ClassTag](t: => T) {
     def get: T = t
     def opt: Option[T] = discardExceptions.wrap(t)
-    def getOrElse(t: T): T = opt.getOrElse(t)
-    def default(implicit default: Default[T]): T = useDefaults.wrap(t).apply()
+    def getOrElse[T2 >: T](t: T2): T2 = opt.getOrElse(t)
+    //def default[T](implicit default: Default[T]) = useDefaults.wrap(t).apply()
     def either: Either[E, T] = captureExceptions.wrap(t)
     def attempt: Try[T] = returnTry.wrap(t)
     def time[D: TimeSystem.ByDuration] = timeExecution.wrap(t)
@@ -74,7 +74,7 @@ object strategy {
 
   implicit def captureExceptions = new CaptureExceptions
   class CaptureExceptions extends ExceptionHandler {
-    type ![T, E <: Exception] = Either[E, T]
+    type ![+T, E <: Exception] = Either[E, T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Either[E, T] =
       try Right(t) catch {
         case e: E => Left(e)
@@ -86,7 +86,7 @@ object strategy {
 
   implicit def returnTry = new ReturnTry
   class ReturnTry extends ExceptionHandler {
-    type ![T, E <: Exception] = Try[T]
+    type ![+T, E <: Exception] = Try[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Try[T] = Try(t)
     
     override def toString = "[strategy.returnTry]"
@@ -94,7 +94,7 @@ object strategy {
 
   implicit val kcaco = new Kcaco
   class Kcaco extends ExceptionHandler {
-    type ![T, E <: Exception] = T
+    type ![+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T =
       try t catch { case e: Exception => null.asInstanceOf[T] }
 
@@ -103,7 +103,7 @@ object strategy {
 
   implicit val discardExceptions = new DiscardExceptions
   class DiscardExceptions extends ExceptionHandler {
-    type ![T, E <: Exception] = Option[T]
+    type ![+T, E <: Exception] = Option[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Option[T] =
       try Some(t) catch { case e: Exception => None }
 
@@ -112,7 +112,7 @@ object strategy {
 
   implicit def returnFutures(implicit ec: ExecutionContext) = new ReturnFutures
   class ReturnFutures(implicit ec: ExecutionContext) extends ExceptionHandler {
-    type ![T, E <: Exception] = Future[T]
+    type ![+T, E <: Exception] = Future[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Future[T] = Future { t }
 
     override def toString = "[strategy.returnFutures]"
@@ -121,7 +121,7 @@ object strategy {
   implicit def timeExecution[D: TimeSystem.ByDuration] = new TimeExecution[D]
   class TimeExecution[D: TimeSystem.ByDuration] extends ExceptionHandler {
     val ts = ?[TimeSystem.ByDuration[D]]
-    type ![T, E <: Exception] = (T, D)
+    type ![+T, E <: Exception] = (T, D)
     def wrap[T, E <: Exception: ClassTag](r: => T): (T, D) = {
       val t0 = System.currentTimeMillis
       (r, ts.duration(t0, System.currentTimeMillis))
@@ -130,15 +130,15 @@ object strategy {
     override def toString = "[strategy.timeExecution]"
   }
 
-  class Defaulting[T](t: => T) {
-    def apply()(implicit default: Default[T]) =
+  /*class Defaulting[-T](t: => T) {
+    def apply[T]()(implicit default: Default[T]) =
       try t catch { case e: Exception => ?[Default[T]].default }
   }
 
   implicit def useDefaults = new UseDefaults
   class UseDefaults extends ExceptionHandler {
-    type ![T, E <: Exception] = Defaulting[T]
+    type ![+T, E <: Exception] = Defaulting[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Defaulting[T] = new Defaulting(t)
     override def toString = "[strategy.useDefaults]"
-  }
+  }*/
 }
