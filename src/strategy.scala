@@ -30,7 +30,7 @@ import scala.util._
 import scala.concurrent._
 
 @implicitNotFound(msg = "No exception handler was available. Please import "+
-  "a member of rapture.io.strategy, e.g. strategy.throwExceptions.")
+  "a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
 trait ExceptionHandler { eh =>
   type ![+_, _ <: Exception]
   def wrap[T, E <: Exception: ClassTag](t: => T): ![T, E]
