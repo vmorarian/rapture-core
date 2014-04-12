@@ -73,13 +73,13 @@ object RaptureBuild extends Build {
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
-    mainClass := Option(proj.mainClass),
     publishMavenStyle := true,
     libraryDependencies ++= proj.dependencies.map { case (p, v) =>
       "com.propensive" %% s"rapture-$p" % v
     },
     libraryDependencies ++= proj.thirdPartyDependencies.map { case (g, p, v) => g % p % v },
-    initialCommands in console := proj.imports.map("import "+_).mkString("\n")
+    initialCommands in console := proj.imports.map("import "+_).mkString("\n"),
+    packageOptions in (Compile, packageBin) += Package.ManifestAttributes(java.util.jar.Attributes.Name.MAIN_CLASS -> proj.mainClass)
   )
 
 }
