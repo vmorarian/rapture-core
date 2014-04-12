@@ -30,6 +30,7 @@ trait ProjectSettings {
   def dependencies: Seq[(String, String)]
   def thirdPartyDependencies: Seq[(String, String, String)]
   def imports: Seq[String]
+  def mainClass: String = null
 }
 
 object RaptureBuild extends Build {
@@ -72,6 +73,7 @@ object RaptureBuild extends Build {
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
+    mainClass := Option(proj.mainClass),
     publishMavenStyle := true,
     libraryDependencies ++= proj.dependencies.map { case (p, v) =>
       "com.propensive" %% s"rapture-$p" % v
