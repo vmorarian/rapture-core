@@ -76,7 +76,7 @@ object RaptureBuild extends Build {
     libraryDependencies ++= proj.dependencies.map { case (p, v) =>
       "com.propensive" %% s"rapture-$p" % v
     },
-    libraryDependencies ++= proj.thirdPartyDependencies.map { case (g, p, v) => g %% p % v },
+    libraryDependencies ++= proj.thirdPartyDependencies.map { case (g, p, v) => g % p % v },
     initialCommands in console := proj.imports.map("import "+_).mkString("\n")
   )
 
