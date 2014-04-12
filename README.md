@@ -9,11 +9,11 @@ based, however it provides utilities which may be useful in any project. Namely,
  - An alias for `implicitly`
  - Miscellaneous other small tools and utilities
 
-## Availability
+### Availability
 
-Rapture Core 0.9.0 is available under the Apache 2.0 license from Maven Central with group ID `com.propensive` and artifact ID `rapture-core_2.10`.
+Rapture Core 0.9.0 is available under the Apache 2.0 License from Maven Central with group ID `com.propensive` and artifact ID `rapture-core_2.10`.
 
-### SBT
+#### SBT
 
 You can include Rapture Core as a dependency in your own project by adding the following library dependency to your build file:
 
@@ -21,7 +21,7 @@ You can include Rapture Core as a dependency in your own project by adding the f
 libraryDependencies ++= Seq("com.propensive" %% "rapture-core" % "0.9.0")
 ```
 
-### Maven
+#### Maven
 
 If you use Maven, include the following dependency:
 
@@ -33,12 +33,12 @@ If you use Maven, include the following dependency:
 </dependency>
 ```
 
-### Download
+#### Download
 
 You can download Rapture Core directly from the [Rapture website](http://rapture.io/)
 Rapture Core depends on Scala 2.10, but has no other dependencies.
 
-## Return-Type Strategies
+### Return-Type Strategies
 
 Rapture's return-type strategies allow library methods to be written in such a way that they may
 be wrapped in another function (and thus have a different return type) at the call site. This
@@ -88,7 +88,7 @@ Multiple strategies can be composed, should this be required, for example,
 implicit val handler = strategy.returnTry compose strategy.timeExecution
 ```
 
-## Time System Abstraction
+### Time System Abstraction
 
 Many APIs take parameters or return values which represent time. Unfortunately, there is no
 standard for representing entities like instants and durations.  Rapture Core provides a general
@@ -99,7 +99,7 @@ implementations:
 - `timeSystem.javaUtil` - uses `java.util.Date`s to represent instants, and `Long`s to
   represent durations.
 
-## Alias for `implicitly`
+### Alias for `implicitly`
 
 Context-bounds provide a nice, lightweight syntax for working with type classes in Scala,
 however while explicitly specifying an implicit parameter necessarily provides a named handle
