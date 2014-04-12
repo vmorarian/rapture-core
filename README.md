@@ -38,6 +38,18 @@ If you use Maven, include the following dependency:
 You can download Rapture Core directly from the [Rapture website](http://rapture.io/)
 Rapture Core depends on Scala 2.10, but has no other dependencies.
 
+#### Building from source
+
+To build Rapture Core from source, follow these steps:
+
+```
+git clone git@github.com:propensive/rapture-core.git
+cd rapture-core
+sbt package
+```
+
+If the compilation is successful, the compiled JAR file should be found in target/scala-2.10
+
 ### Return-Type Strategies
 
 Rapture's return-type strategies allow library methods to be written in such a way that they may
