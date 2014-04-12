@@ -11,7 +11,7 @@ based, however it provides utilities which may be useful in any project. Namely,
 
 ### Availability
 
-Rapture Core 0.9.0 is available under the Apache 2.0 License from Maven Central with group ID `com.propensive` and artifact ID `rapture-core_2.10`.
+Rapture Core 0.9.0 is available under the Apache 2.0 License from Maven Central with group ID `com.propensive` and artifact ID `rapture-core_2.11-RC4`.
 
 #### SBT
 
@@ -28,7 +28,7 @@ If you use Maven, include the following dependency:
 ```xml
 <dependency>
   <groupId>com.propensive</groupId>
-  <artifactId>rapture-core_2.10</artifactId>
+  <artifactId>rapture-core_2.11-RC4</artifactId>
   <version>0.9.0<version>
 </dependency>
 ```
@@ -36,7 +36,7 @@ If you use Maven, include the following dependency:
 #### Download
 
 You can download Rapture Core directly from the [Rapture website](http://rapture.io/)
-Rapture Core depends on Scala 2.10, but has no other dependencies.
+Rapture Core depends on Scala 2.11-RC4, but has no other dependencies.
 
 ### Return-Type Strategies
 

@@ -68,7 +68,7 @@ object RaptureBuild extends Build {
         </developer>
       </developers>
     ),
-    addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "0.2.1"),
+    //addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "0.2.1"),
     publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
