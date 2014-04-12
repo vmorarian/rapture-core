@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/propensive/rapture-core.png?branch=master)](https://travis-ci.org/propensive/rapture-core)
+[![Build Status](https://travis-ci.org/propensive/rapture-core.png?branch=scala-2.10)](https://travis-ci.org/propensive/rapture-core)
 # Rapture Core
 
 The Rapture Core project provides a common foundation upon which other Rapture projects are
