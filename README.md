@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/propensive/rapture-core.png?branch=master)](https://travis-ci.org/propensive/rapture-core)
 Rapture Core
 ============
 
@@ -6,8 +7,8 @@ based, however it provides utilities which may be useful in any project. Namely,
 
  - Generalized return-type strategy
  - A lightweight abstraction on time libraries, and implementations for Java time
- - Alias for `implicitly`
- - Miscellaneous other utilities
+ - An alias for `implicitly`
+ - Miscellaneous other small tools and utilities
 
 Return-Type Strategies
 ----------------------
@@ -33,7 +34,8 @@ import strategy.returnFutures
 Json.parse("[1, 2, 3]")
 ```
 
-This will immediately return a `Future[Json]`.
+This will immediately return a `Future[Json]`, from which the result can be obtained once
+processing completes.
 
 A selection of return-type strategies are provided:
 
