@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/propensive/rapture-core.png?branch=master)](https://travis-ci.org/propensive/rapture-core)
-Rapture Core
-============
+# Rapture Core
 
 The Rapture Core project provides a common foundation upon which other Rapture projects are
 based, however it provides utilities which may be useful in any project. Namely,
@@ -10,8 +9,36 @@ based, however it provides utilities which may be useful in any project. Namely,
  - An alias for `implicitly`
  - Miscellaneous other small tools and utilities
 
-Return-Type Strategies
-----------------------
+## Availability
+
+Rapture Core 0.9.0 is available under the Apache 2.0 license from Maven Central with group ID `com.propensive` and artifact ID `rapture-core_2.10`.
+
+### SBT
+
+You can include Rapture Core as a dependency in your own project by adding the following library dependency to your build file:
+
+```scala
+libraryDependencies ++= Seq("com.propensive" %% "rapture-core" % "0.9.0")
+```
+
+### Maven
+
+If you use Maven, include the following dependency:
+
+```xml
+<dependency>
+  <groupId>com.propensive</groupId>
+  <artifactId>rapture-core_2.10</artifactId>
+  <version>0.9.0<version>
+</dependency>
+```
+
+### Download
+
+You can download Rapture Core directly from the [Rapture website](http://rapture.io/)
+Rapture Core depends on Scala 2.10, but has no other dependencies.
+
+## Return-Type Strategies
 
 Rapture's return-type strategies allow library methods to be written in such a way that they may
 be wrapped in another function (and thus have a different return type) at the call site. This
@@ -61,8 +88,7 @@ Multiple strategies can be composed, should this be required, for example,
 implicit val handler = strategy.returnTry compose strategy.timeExecution
 ```
 
-Time System Abstraction
------------------------
+## Time System Abstraction
 
 Many APIs take parameters or return values which represent time. Unfortunately, there is no
 standard for representing entities like instants and durations.  Rapture Core provides a general
@@ -73,8 +99,7 @@ implementations:
 - `timeSystem.javaUtil` - uses `java.util.Date`s to represent instants, and `Long`s to
   represent durations.
 
-Alias for `implicitly`
-----------------------
+## Alias for `implicitly`
 
 Context-bounds provide a nice, lightweight syntax for working with type classes in Scala,
 however while explicitly specifying an implicit parameter necessarily provides a named handle
@@ -83,4 +108,18 @@ order to use the type class. This can make using context-bounds more cumbersome 
 deserve.
 
 Rapture Core introduces an alias for `implicitly` named `?`. Generally speaking, any occurrence
-of `implicitly` can be replaced by a `?`.
+of `implicitly` can be replaced by a `?`. This is particularly useful when calling methods which
+take multiple implicit parameters and you would like to specify one of these explicitly. For
+example, a method like this:
+
+```scala
+def performAction[T](v: Int)(implicit alpha: Alpha[T], beta: Beta, gamma: Gamma) = { ... }
+```
+
+may now be called quite concisely using
+
+```scala
+performAction(42)(?, ?, myGamma)
+```
+
+if we only wanted to specify the parameter `myGamma` explicitly.
