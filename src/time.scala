@@ -27,8 +27,8 @@ object TimeSystem {
   type ByDuration[T] = TimeSystem[_, T]
 }
 
-@implicitNotFound("an implicit TimeSystem is required; please import timeSystem.numeric or "+
-    "timeSystem.javaUtil")
+@implicitNotFound("an implicit TimeSystem is required; please import timeSystems.numeric or "+
+    "timeSystems.javaUtil")
 trait TimeSystem[Instant, Duration] {
   def instant(millis: Long): Instant
   def duration(from: Long, to: Long): Duration
