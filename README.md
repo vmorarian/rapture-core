@@ -115,7 +115,7 @@ ExceptionHandler parameter, and wrap your method body and return type, like this
 
 ```scala
 def doSomething[T](arg: String, arg2: T)(implicit eh: ExceptionHandler):
-    eh.![Exception, Double] = eh.wrap {
+    eh.![Double, Exception] = eh.wrap {
   // method body
 }
 ```
