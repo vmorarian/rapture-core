@@ -100,6 +100,29 @@ Multiple strategies can be composed, should this be required, for example,
 implicit val handler = strategy.returnTry compose strategy.timeExecution
 ```
 
+#### Writing methods to use return-type strategies
+
+To transform a method like this,
+
+```scala
+def doSomething[T](arg: String, arg2: T): Double = {
+  // method body
+}
+```
+
+into one which offers end-users a choice of return-type strategy, include an implicit
+ExceptionHandler parameter, and wrap your method body and return type, like this,
+
+```scala
+def doSomething[T](arg: String, arg2: T)(implicit eh: ExceptionHandler):
+    eh.![Exception, Double] = eh.wrap {
+  // method body
+}
+```
+
+If you know that your method body will only throw exceptions of a certain type, you can
+specify this in the method return type in place of `Exception`.
+
 ### Time System Abstraction
 
 Many APIs take parameters or return values which represent time. Unfortunately, there is no
