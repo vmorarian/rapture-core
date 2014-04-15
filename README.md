@@ -130,8 +130,8 @@ standard for representing entities like instants and durations.  Rapture Core pr
 type class for defining these types and methods for creating them, and provides two simple
 implementations:
 
-- `timeSystem.numeric` - uses `Long`s to represent both instants and durations.
-- `timeSystem.javaUtil` - uses `java.util.Date`s to represent instants, and `Long`s to
+- `timeSystems.numeric` - uses `Long`s to represent both instants and durations.
+- `timeSystems.javaUtil` - uses `java.util.Date`s to represent instants, and `Long`s to
   represent durations.
 
 ### Alias for `implicitly`
