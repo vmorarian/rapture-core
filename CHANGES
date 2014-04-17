@@ -1,0 +1,3 @@
+Version 0.9.1
+ - Corrected a small typo in the missing-implicit method
+ - Added text StringContext for whitespace-condensed multiline strings

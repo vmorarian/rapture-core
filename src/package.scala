@@ -101,6 +101,19 @@ object `package` {
     }
   }
 
+  implicit class TextStringContext(sc: StringContext) {
+    def text(exprs: String*) = {
+      val sb = new StringBuilder
+      val textParts = sc.parts.iterator
+      val expressions = exprs.iterator
+      
+      sb append textParts.next()
+      while(textParts.hasNext) sb append textParts.next()
+
+      sb.toString.replaceAll("\\s\\s*", " ")
+    }
+  }
+
   /** Convenience method for forking a block of code to a new thread */
   def fork(blk: => Unit): Thread = {
     val th = new Thread {
