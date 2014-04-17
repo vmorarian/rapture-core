@@ -29,7 +29,7 @@ import scala.util._
 
 import scala.concurrent._
 
-@implicitNotFound(msg = "No exception handler was available. Please import "+
+@implicitNotFound(msg = "No return-type strategy was available. Please import "+
   "a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
 trait ExceptionHandler { eh =>
   type ![+_, _ <: Exception]
