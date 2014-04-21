@@ -60,6 +60,7 @@ object strategy {
   }
 
   class Explicit[+T, E <: Exception: ClassTag](t: => T) {
+    val block: () => T = () => t
     def get: T = t
     def opt: Option[T] = discardExceptions.wrap(t)
     def getOrElse[T2 >: T](t: T2): T2 = opt.getOrElse(t)
