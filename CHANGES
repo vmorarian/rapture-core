@@ -1,3 +1,4 @@
 Version 0.9.1
  - Corrected a small typo in the missing-implicit method
  - Added text StringContext for whitespace-condensed multiline strings
+ - ExceptionHandler is now called Rts; its inner ! type is now called Wrap
