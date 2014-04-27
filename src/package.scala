@@ -114,6 +114,13 @@ object `package` {
     }
   }
 
+  implicit class EitherExtras[L, R](either: Either[L, R]) {
+    def map[T](leftFn: L => T, rightFn: R => T) = either match {
+      case Left(left) => leftFn(left)
+      case Right(right) => rightFn(right)
+    }
+  }
+
   /** Convenience method for forking a block of code to a new thread */
   def fork(blk: => Unit): Thread = {
     val th = new Thread {
