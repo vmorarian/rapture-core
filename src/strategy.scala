@@ -29,13 +29,15 @@ import scala.util._
 
 import scala.concurrent._
 
-@implicitNotFound(msg = "No return-type strategy was available. Please import "+
-  "a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
-trait Rts[+Group] { rts =>
+trait RtsGroup
+
+@implicitNotFound(msg = "No return-type strategy was available for ${G} methods. "+
+    "Please import a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
+trait Rts[+G <: RtsGroup] { rts =>
   type Wrap[+_, _ <: Exception]
   def wrap[T, E <: Exception: ClassTag](t: => T): Wrap[T, E]
 
-  def compose[Group2](rts2: Rts[Group2]) = new Rts[Group] {
+  def compose[H <: RtsGroup](rts2: Rts[H]) = new Rts[G] {
     type Wrap[+T, E <: Exception] = rts.Wrap[rts2.Wrap[T, E], E]
     def wrap[T, E <: Exception: ClassTag](t: => T): Wrap[T, E] =
       rts.wrap(rts2.wrap(t))
@@ -46,14 +48,14 @@ object raw extends strategy.ThrowExceptions
 
 object strategy {
   
-  implicit def throwExceptions[Group] = new ThrowExceptions[Group]
-  class ThrowExceptions[+Group] extends Rts[Group] {
+  implicit def throwExceptions[G <: RtsGroup] = new ThrowExceptions[G]
+  class ThrowExceptions[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T = t
   }
 
-  implicit def explicit[Group] = new ExplicitReturns[Group]
-  class ExplicitReturns[+Group] extends Rts[Group] {
+  implicit def explicit[G <: RtsGroup] = new ExplicitReturns[G]
+  class ExplicitReturns[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = Explicit[T, E]
     def wrap[T, E <: Exception: ClassTag](t: => T): Explicit[T, E] =
       new Explicit[T, E](t)
@@ -72,8 +74,8 @@ object strategy {
     override def toString = "[unexpanded result]"
   }
 
-  implicit def captureExceptions[Group] = new CaptureExceptions[Group]
-  class CaptureExceptions[+Group] extends Rts[Group] {
+  implicit def captureExceptions[G <: RtsGroup] = new CaptureExceptions[G]
+  class CaptureExceptions[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = Either[E, T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Either[E, T] =
       try Right(t) catch {
@@ -84,16 +86,16 @@ object strategy {
     override def toString = "[strategy.captureExceptions]"
   }
 
-  implicit def returnTry[Group] = new ReturnTry[Group]
-  class ReturnTry[+Group] extends Rts[Group] {
+  implicit def returnTry[G <: RtsGroup] = new ReturnTry[G]
+  class ReturnTry[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = Try[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Try[T] = Try(t)
     
     override def toString = "[strategy.returnTry]"
   }
 
-  implicit def kcaco[Group] = new Kcaco[Group]
-  class Kcaco[+Group] extends Rts[Group] {
+  implicit def kcaco[G <: RtsGroup] = new Kcaco[G]
+  class Kcaco[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T =
       try t catch { case e: Exception => null.asInstanceOf[T] }
@@ -101,8 +103,8 @@ object strategy {
     override def toString = "[strategy.kcaco]"
   }
 
-  implicit def discardExceptions[Group] = new DiscardExceptions[Group]
-  class DiscardExceptions[+Group] extends Rts[Group] {
+  implicit def discardExceptions[G <: RtsGroup] = new DiscardExceptions[G]
+  class DiscardExceptions[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = Option[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Option[T] =
       try Some(t) catch { case e: Exception => None }
@@ -110,16 +112,19 @@ object strategy {
     override def toString = "[strategy.discardExceptions]"
   }
 
-  implicit def returnFutures[Group](implicit ec: ExecutionContext) = new ReturnFutures[Group]
-  class ReturnFutures[+Group](implicit ec: ExecutionContext) extends Rts[Group] {
+  implicit def returnFutures[G <: RtsGroup](implicit ec: ExecutionContext) =
+    new ReturnFutures[G]
+  
+  class ReturnFutures[+G <: RtsGroup](implicit ec: ExecutionContext) extends Rts[G] {
     type Wrap[+T, E <: Exception] = Future[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Future[T] = Future { t }
 
     override def toString = "[strategy.returnFutures]"
   }
 
-  implicit def timeExecution[D: TimeSystem.ByDuration, Group] = new TimeExecution[D, Group]
-  class TimeExecution[D: TimeSystem.ByDuration, +Group] extends Rts[Group] {
+  implicit def timeExecution[D: TimeSystem.ByDuration, G <: RtsGroup] =
+    new TimeExecution[D, G]
+  class TimeExecution[D: TimeSystem.ByDuration, +G <: RtsGroup] extends Rts[G] {
     val ts = ?[TimeSystem.ByDuration[D]]
     type Wrap[+T, E <: Exception] = (T, D)
     def wrap[T, E <: Exception: ClassTag](r: => T): (T, D) = {
@@ -135,8 +140,8 @@ object strategy {
       try t catch { case e: Exception => ?[Default[T]].default }
   }
 
-  implicit def useDefaults[Group] = new UseDefaults[Group]
-  class UseDefaults[+Group] extends Rts[Group] {
+  implicit def useDefaults[G <: RtsGroup] = new UseDefaults[G]
+  class UseDefaults[+G <: RtsGroup] extends Rts[G] {
     type Wrap[+T, E <: Exception] = Defaulting[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Defaulting[T] = new Defaulting(t)
     override def toString = "[strategy.useDefaults]"
