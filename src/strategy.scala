@@ -29,6 +29,8 @@ import scala.util._
 
 import scala.concurrent._
 
+trait RtsGroup
+
 trait LpRts {
   implicit def defaultRts = new strategy.ThrowExceptions
 }
