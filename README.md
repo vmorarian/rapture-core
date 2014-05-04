@@ -4,7 +4,7 @@
 The Rapture Core project provides a common foundation upon which other Rapture projects are
 based, however it provides utilities which may be useful in any project. Namely,
 
- - Generalized return-type strategy
+ - Return-type strategies
  - A lightweight abstraction on time libraries, and implementations for Java time
  - An alias for `implicitly`
  - Miscellaneous other small tools and utilities
