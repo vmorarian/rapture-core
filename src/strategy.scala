@@ -29,6 +29,12 @@ import scala.util._
 
 import scala.concurrent._
 
+trait LpRts {
+  implicit def defaultRts = new strategy.ThrowExceptions
+}
+
+object Rts extends LpRts
+
 @implicitNotFound(msg = "No return-type strategy was available. Please import "+
   "a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
 trait Rts { rts =>
