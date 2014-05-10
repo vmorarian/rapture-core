@@ -74,6 +74,7 @@ object strategy {
     //def default[T](implicit default: Default[T]) = useDefaults.wrap(t).apply()
     def either: Either[E, T] = captureExceptions.wrap(t)
     def attempt: Try[T] = returnTry.wrap(t)
+    def backoff: T = exponentialBackoff.wrap(t)
     def time[D: TimeSystem.ByDuration] = timeExecution.wrap(t)
     def future(implicit ec: ExecutionContext): Future[T] = returnFutures.wrap(t)
   
@@ -98,6 +99,26 @@ object strategy {
     def wrap[T, E <: Exception: ClassTag](t: => T): Try[T] = Try(t)
     
     override def toString = "[strategy.returnTry]"
+  }
+
+  implicit def exponentialBackoff[G <: RtsGroup] = new ExponentialBackoff[G]()
+  class ExponentialBackoff[+G <: RtsGroup](maxRetries: Int = 10, initialPause: Long = 1000L,
+      backoffRate: Double = 2.0) extends Rts[G] {
+    type Wrap[+T, E <: Exception] = T
+    def wrap[T, E <: Exception: ClassTag](t: => T): T = {
+      var multiplier = 1.0
+      var count = 1
+      var result: T = null.asInstanceOf[T]
+      var exception: Exception = null.asInstanceOf[Exception]
+      while(result == null && count < maxRetries) try { result = t } catch {
+        case e: Exception =>
+          exception = e
+          Thread.sleep((multiplier*initialPause).toLong)
+          multiplier *= backoffRate
+          count += 1
+      }
+      if(result != null) result else throw exception
+    }
   }
 
   implicit def kcaco[G <: RtsGroup] = new Kcaco[G]
