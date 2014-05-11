@@ -6,6 +6,7 @@ based, however it provides utilities which may be useful in any project. Namely,
 
  - Modes (previously called return-type strategies)
  - A lightweight abstraction on time libraries, and implementations for Java time
+ - A tiny (but growing) collection of conveniences for working within the REPL
  - An alias for `implicitly`
  - Miscellaneous other small tools and utilities
 
