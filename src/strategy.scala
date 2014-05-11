@@ -52,8 +52,34 @@ trait Mode[+Group <: ModeGroup] { mode =>
 
 object raw extends modes.ThrowExceptions
 
-object modes {
+object repl {
   
+  var showStackTraces: Boolean = false
+  private var lastExceptionValue: Throwable = new SilentException
+
+  def lastException: Nothing = throw lastExceptionValue
+
+  implicit def replMode[Group <: ModeGroup] = new Repl[Group]
+  
+  class SilentException extends Throwable {
+    override def printStackTrace(pw: java.io.PrintWriter) = ()
+  }
+
+  class Repl[+Group <: ModeGroup] extends Mode[Group] {
+    type Wrap[+Return, E <: Exception] = Return
+    def wrap[Return, E <: Exception: ClassTag](blk: => Return): Return = try blk catch {
+      case e: Exception => if(showStackTraces) throw e else {
+        println("Execution failed with exception: "+e.toString)
+        print("For the full stacktrace, see repl.lastException.")
+        lastExceptionValue = e
+        throw new SilentException()
+      }
+    }
+  }
+}
+
+object modes {
+
   implicit def throwExceptions[G <: ModeGroup] = new ThrowExceptions[G]
   class ThrowExceptions[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = T
