@@ -29,81 +29,83 @@ import scala.util._
 
 import scala.concurrent._
 
-trait RtsGroup
+trait ModeGroup
 
-trait LpRts {
-  implicit def defaultRts = new strategy.ThrowExceptions
+trait LowPriorityMode {
+  implicit def defaultMode = new modes.ThrowExceptions
 }
 
-object Rts extends LpRts
+object Mode extends LowPriorityMode
 
-@implicitNotFound(msg = "No return-type strategy was available for ${G} methods. "+
-    "Please import a member of rapture.core.strategy, e.g. strategy.throwExceptions.")
-trait Rts[+G <: RtsGroup] { rts =>
+@implicitNotFound(msg = "No implicit mode was available for ${Group} methods. "+
+    "Please import a member of rapture.core.modes, e.g. modes.throwExceptions.")
+trait Mode[+Group <: ModeGroup] { mode =>
   type Wrap[+_, _ <: Exception]
-  def wrap[T, E <: Exception: ClassTag](t: => T): Wrap[T, E]
+  def wrap[Result, E <: Exception: ClassTag](blk: => Result): Wrap[Result, E]
 
-  def compose[H <: RtsGroup](rts2: Rts[H]) = new Rts[G] {
-    type Wrap[+T, E <: Exception] = rts.Wrap[rts2.Wrap[T, E], E]
-    def wrap[T, E <: Exception: ClassTag](t: => T): Wrap[T, E] =
-      rts.wrap(rts2.wrap(t))
+  def compose[Group2 <: ModeGroup](mode2: Mode[Group2]) = new Mode[Group] {
+    type Wrap[+Result, E <: Exception] = mode.Wrap[mode2.Wrap[Result, E], E]
+    def wrap[Result, E <: Exception: ClassTag](blk: => Result): Wrap[Result, E] =
+      mode.wrap(mode2.wrap(blk))
   }
 }
 
-object raw extends strategy.ThrowExceptions
+object raw extends modes.ThrowExceptions
 
-object strategy {
+object modes {
   
-  implicit def throwExceptions[G <: RtsGroup] = new ThrowExceptions[G]
-  class ThrowExceptions[+G <: RtsGroup] extends Rts[G] {
+  implicit def throwExceptions[G <: ModeGroup] = new ThrowExceptions[G]
+  class ThrowExceptions[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T = t
   }
 
-  implicit def explicit[G <: RtsGroup] = new ExplicitReturns[G]
-  class ExplicitReturns[+G <: RtsGroup] extends Rts[G] {
+  implicit def explicit[G <: ModeGroup] = new ExplicitReturns[G]
+  class ExplicitReturns[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = Explicit[T, E]
     def wrap[T, E <: Exception: ClassTag](t: => T): Explicit[T, E] =
       new Explicit[T, E](t)
   }
 
-  class Explicit[+T, E <: Exception: ClassTag](t: => T) {
-    def get: T = t
-    def opt: Option[T] = discardExceptions.wrap(t)
-    def getOrElse[T2 >: T](t: T2): T2 = opt.getOrElse(t)
-    //def default[T](implicit default: Default[T]) = useDefaults.wrap(t).apply()
-    def either: Either[E, T] = captureExceptions.wrap(t)
-    def attempt: Try[T] = returnTry.wrap(t)
-    def backoff: T = exponentialBackoff.wrap(t)
-    def time[D: TimeSystem.ByDuration] = timeExecution.wrap(t)
-    def future(implicit ec: ExecutionContext): Future[T] = returnFutures.wrap(t)
+  class Explicit[+Result, E <: Exception: ClassTag](blk: => Result) {
+    def get: Result = blk
+    def opt: Option[Result] = discardExceptions.wrap(blk)
+    def getOrElse[Result2 >: Result](t: Result2): Result2 = opt.getOrElse(blk)
+    //def default(implicit default: Default[Result]) = useDefaults.wrap(blk).apply()
+    def either: Either[E, Result] = captureExceptions.wrap(blk)
+    def attempt: Try[Result] = returnTry.wrap(blk)
+    def backoff(maxRetries: Int = 10, initialPause: Long = 1000L,
+        backoffRate: Double = 2.0): Result =
+      new ExponentialBackoff(maxRetries, initialPause, backoffRate).wrap(blk)
+    def time[D: TimeSystem.ByDuration] = timeExecution.wrap(blk)
+    def future(implicit ec: ExecutionContext): Future[Result] = returnFutures.wrap(blk)
   
     override def toString = "[unexpanded result]"
   }
 
-  implicit def captureExceptions[G <: RtsGroup] = new CaptureExceptions[G]
-  class CaptureExceptions[+G <: RtsGroup] extends Rts[G] {
-    type Wrap[+T, E <: Exception] = Either[E, T]
-    def wrap[T, E <: Exception: ClassTag](t: => T): Either[E, T] =
-      try Right(t) catch {
+  implicit def captureExceptions[Group <: ModeGroup] = new CaptureExceptions[Group]
+  class CaptureExceptions[+Group <: ModeGroup] extends Mode[Group] {
+    type Wrap[+Result, E <: Exception] = Either[E, Result]
+    def wrap[Result, E <: Exception: ClassTag](blk: => Result): Either[E, Result] =
+      try Right(blk) catch {
         case e: E => Left(e)
         case e: Throwable => throw e
       }
 
-    override def toString = "[strategy.captureExceptions]"
+    override def toString = "[modes.captureExceptions]"
   }
 
-  implicit def returnTry[G <: RtsGroup] = new ReturnTry[G]
-  class ReturnTry[+G <: RtsGroup] extends Rts[G] {
+  implicit def returnTry[G <: ModeGroup] = new ReturnTry[G]
+  class ReturnTry[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = Try[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Try[T] = Try(t)
     
-    override def toString = "[strategy.returnTry]"
+    override def toString = "[modes.returnTry]"
   }
 
-  implicit def exponentialBackoff[G <: RtsGroup] = new ExponentialBackoff[G]()
-  class ExponentialBackoff[+G <: RtsGroup](maxRetries: Int = 10, initialPause: Long = 1000L,
-      backoffRate: Double = 2.0) extends Rts[G] {
+  implicit def exponentialBackoff[G <: ModeGroup] = new ExponentialBackoff[G]()
+  class ExponentialBackoff[+G <: ModeGroup](maxRetries: Int = 10, initialPause: Long = 1000L,
+      backoffRate: Double = 2.0) extends Mode[G] {
     type Wrap[+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T = {
       var multiplier = 1.0
@@ -121,37 +123,37 @@ object strategy {
     }
   }
 
-  implicit def kcaco[G <: RtsGroup] = new Kcaco[G]
-  class Kcaco[+G <: RtsGroup] extends Rts[G] {
+  implicit def kcaco[G <: ModeGroup] = new Kcaco[G]
+  class Kcaco[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = T
     def wrap[T, E <: Exception: ClassTag](t: => T): T =
       try t catch { case e: Exception => null.asInstanceOf[T] }
 
-    override def toString = "[strategy.kcaco]"
+    override def toString = "[modes.kcaco]"
   }
 
-  implicit def discardExceptions[G <: RtsGroup] = new DiscardExceptions[G]
-  class DiscardExceptions[+G <: RtsGroup] extends Rts[G] {
+  implicit def discardExceptions[G <: ModeGroup] = new DiscardExceptions[G]
+  class DiscardExceptions[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = Option[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Option[T] =
       try Some(t) catch { case e: Exception => None }
 
-    override def toString = "[strategy.discardExceptions]"
+    override def toString = "[modes.discardExceptions]"
   }
 
-  implicit def returnFutures[G <: RtsGroup](implicit ec: ExecutionContext) =
+  implicit def returnFutures[G <: ModeGroup](implicit ec: ExecutionContext) =
     new ReturnFutures[G]
   
-  class ReturnFutures[+G <: RtsGroup](implicit ec: ExecutionContext) extends Rts[G] {
+  class ReturnFutures[+G <: ModeGroup](implicit ec: ExecutionContext) extends Mode[G] {
     type Wrap[+T, E <: Exception] = Future[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Future[T] = Future { t }
 
-    override def toString = "[strategy.returnFutures]"
+    override def toString = "[modes.returnFutures]"
   }
 
-  implicit def timeExecution[D: TimeSystem.ByDuration, G <: RtsGroup] =
+  implicit def timeExecution[D: TimeSystem.ByDuration, G <: ModeGroup] =
     new TimeExecution[D, G]
-  class TimeExecution[D: TimeSystem.ByDuration, +G <: RtsGroup] extends Rts[G] {
+  class TimeExecution[D: TimeSystem.ByDuration, +G <: ModeGroup] extends Mode[G] {
     val ts = ?[TimeSystem.ByDuration[D]]
     type Wrap[+T, E <: Exception] = (T, D)
     def wrap[T, E <: Exception: ClassTag](r: => T): (T, D) = {
@@ -159,7 +161,7 @@ object strategy {
       (r, ts.duration(t0, System.currentTimeMillis))
     }
     
-    override def toString = "[strategy.timeExecution]"
+    override def toString = "[modes.timeExecution]"
   }
 
   /*class Defaulting[-T](t: => T) {
@@ -167,10 +169,10 @@ object strategy {
       try t catch { case e: Exception => ?[Default[T]].default }
   }
 
-  implicit def useDefaults[G <: RtsGroup] = new UseDefaults[G]
-  class UseDefaults[+G <: RtsGroup] extends Rts[G] {
+  implicit def useDefaults[G <: ModeGroup] = new UseDefaults[G]
+  class UseDefaults[+G <: ModeGroup] extends Mode[G] {
     type Wrap[+T, E <: Exception] = Defaulting[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Defaulting[T] = new Defaulting(t)
-    override def toString = "[strategy.useDefaults]"
+    override def toString = "[modes.useDefaults]"
   }*/
 }

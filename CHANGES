@@ -1,7 +1,7 @@
 Version 0.10.0
  - Corrected a small typo in the missing-implicit method
  - Added text StringContext for whitespace-condensed multiline strings
- - ExceptionHandler is now called Rts; its inner ! type is now called Wrap
+ - ExceptionHandler is now called Mode; its inner ! type is now called Wrap
  - throwExceptions is now the default handler
- - Rts now takes a type parameter for the group of methods to which it should apply
+ - Mode now takes a type parameter for the group of methods to which it should apply
  - Added strategy.exponentialBackoff

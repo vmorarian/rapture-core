@@ -4,7 +4,7 @@
 The Rapture Core project provides a common foundation upon which other Rapture projects are
 based, however it provides utilities which may be useful in any project. Namely,
 
- - Return-type strategies
+ - Modes (previously called return-type strategies)
  - A lightweight abstraction on time libraries, and implementations for Java time
  - An alias for `implicitly`
  - Miscellaneous other small tools and utilities
@@ -50,54 +50,54 @@ sbt package
 
 If the compilation is successful, the compiled JAR file should be found in target/scala-2.10
 
-### Return-Type Strategies
+### Modes
 
-Rapture's return-type strategies allow library methods to be written in such a way that they may
-be wrapped in another function (and thus have a different return type) at the call site. This
-pattern allows users of the library to choose the return type and additional pre- and
+Rapture's modes allow library methods to be written in such a way that they may
+be wrapped in another function (and have a different return type) at the call site. This
+pattern allows *users* of the library to choose the return type and additional pre- and
 post-execution processing to be performed, depending on their needs.  For example, using Rapture
-JSON, given one of the imported return-type strategies,
+JSON, given one of the imported modes,
 
 ```scala
-import strategy.captureExceptions
+import modes.captureExceptions
 Json.parse("[1, 2, 3]")
 ```
 
 will have return type `Either[ParseException, Json]`. Hopefully the parsing succeeded, and the
 return type will be `Right[Json]` rather than `Left[ParseException]`.
 
-Alternatively, given a different imported strategy, we will get a different return type.
+Alternatively, given a different imported mode, we will get a different return type.
 
 ```scala
-import strategy.returnFutures
+import modes.returnFutures
 Json.parse("[1, 2, 3]")
 ```
 
 This will immediately return a `Future[Json]`, from which the result can be obtained once
 processing completes.
 
-A selection of return-type strategies are provided:
+A selection of modes are provided:
 
-- `strategy.throwExceptions` - does no additional processing, and simply returns the value,
-  leaving any thrown exceptions unhandled.
-- `strategy.captureExceptions` - captures successful results in the `Right` branch of an
+- `modes.throwExceptions` - does no additional processing, and simply returns the value,
+  leaving any thrown exceptions unhandled. This is the default.
+- `modes.captureExceptions` - captures successful results in the `Right` branch of an
   `Either`, or exceptions in the `Left` branch.
-- `strategy.discardExceptions` - returns an `Option` of the result, where the exceptional case
+- `modes.discardExceptions` - returns an `Option` of the result, where the exceptional case
   collapses to `None`.
-- `strategy.returnTry` - wraps the result in a `scala.util.Try`.
-- `strategy.returnFutures` - wraps the result in a `scala.concurrent.Future`; requires an
+- `modes.returnTry` - wraps the result in a `scala.util.Try`.
+- `modes.returnFutures` - wraps the result in a `scala.concurrent.Future`; requires an
   implicit ExecutionContext.
-- `strategy.timeExecution` - times the duration of carrying out the execution, returning a tuple
+- `modes.timeExecution` - times the duration of carrying out the execution, returning a tuple
   of the return value and the time taken; requires an implicit `rapture.core.TimeSystem`.
-- `strategy.kcaco` - "Keep calm and carry on" - catches exceptions and silently returns them as
+- `modes.kcaco` - "Keep calm and carry on" - catches exceptions and silently returns them as
   null; this is strongly discouraged!
-- `strategy.explicit` - returns an instance of `Explicit` which requires the return-type
-  strategy to be explicitly specified at the call site every time.
+- `modes.explicit` - returns an instance of `Explicit` which requires the mode to be
+  explicitly specified at the call site every time.
 
 Multiple strategies can be composed, should this be required, for example,
 
 ```scala
-implicit val handler = strategy.returnTry compose strategy.timeExecution
+implicit val handler = modes.returnTry compose modes.timeExecution
 ```
 
 #### Writing methods to use return-type strategies
@@ -110,18 +110,19 @@ def doSomething[T](arg: String, arg2: T): Double = {
 }
 ```
 
-into one which offers end-users a choice of return-type strategy, include an implicit
-ExceptionHandler parameter, and wrap your method body and return type, like this,
+into one which offers end-users a choice of mode, include an implicit
+Mode parameter, and wrap your method body and return type, like this,
 
 ```scala
-def doSomething[T](arg: String, arg2: T)(implicit eh: ExceptionHandler):
-    eh.![Double, Exception] = eh.wrap {
+def doSomething[T](arg: String, arg2: T)(implicit mode: Mode):
+    mode.Wrap[Double, Exception] = mode wrap {
   // method body
 }
 ```
 
 If you know that your method body will only throw exceptions of a certain type, you can
-specify this in the method return type in place of `Exception`.
+specify this in the method return type in place of `Exception`, which may make processing
+exceptions easier when using a mode which captures them (e.g. `modes.captureExceptions`).
 
 ### Time System Abstraction
 
