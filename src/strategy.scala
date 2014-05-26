@@ -104,7 +104,7 @@ object modes {
         backoffRate: Double = 2.0): Result =
       new ExponentialBackoff(maxRetries, initialPause, backoffRate).wrap(blk)
     def time[D: TimeSystem.ByDuration] = timeExecution.wrap(blk)
-    def future(implicit ec: ExecutionContext): Future[Result] = returnFutures.wrap(blk)
+    def future(implicit ec: ExecutionContext): Future[Result] = returnFuture.wrap(blk)
   
     override def toString = "[unexpanded result]"
   }
@@ -167,14 +167,14 @@ object modes {
     override def toString = "[modes.discardExceptions]"
   }
 
-  implicit def returnFutures[G <: ModeGroup](implicit ec: ExecutionContext) =
-    new ReturnFutures[G]
+  implicit def returnFuture[G <: ModeGroup](implicit ec: ExecutionContext) =
+    new ReturnFuture[G]
   
-  class ReturnFutures[+G <: ModeGroup](implicit ec: ExecutionContext) extends Mode[G] {
+  class ReturnFuture[+G <: ModeGroup](implicit ec: ExecutionContext) extends Mode[G] {
     type Wrap[+T, E <: Exception] = Future[T]
     def wrap[T, E <: Exception: ClassTag](t: => T): Future[T] = Future { t }
 
-    override def toString = "[modes.returnFutures]"
+    override def toString = "[modes.returnFuture]"
   }
 
   implicit def timeExecution[D: TimeSystem.ByDuration, G <: ModeGroup] =
