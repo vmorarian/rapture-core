@@ -70,7 +70,7 @@ return type will be `Right[Json]` rather than `Left[ParseException]`.
 Alternatively, given a different imported mode, we will get a different return type.
 
 ```scala
-import modes.returnFutures
+import modes.returnFuture
 Json.parse("[1, 2, 3]")
 ```
 
@@ -86,7 +86,7 @@ A selection of modes are provided:
 - `modes.discardExceptions` - returns an `Option` of the result, where the exceptional case
   collapses to `None`.
 - `modes.returnTry` - wraps the result in a `scala.util.Try`.
-- `modes.returnFutures` - wraps the result in a `scala.concurrent.Future`; requires an
+- `modes.returnFuture` - wraps the result in a `scala.concurrent.Future`; requires an
   implicit ExecutionContext.
 - `modes.timeExecution` - times the duration of carrying out the execution, returning a tuple
   of the return value and the time taken; requires an implicit `rapture.core.TimeSystem`.
